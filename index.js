@@ -37,15 +37,18 @@ async function GetElonTweets() {
 }
 
 function FilterNewTweets(tweets) {
-
+    
 }
 
-async function RecordTweets(filename, tweets) {
-    
+async function RecordTweets(filename, new_tweets) {
+    const {tweets} =  JSON.parse(fs.readFileSync(filename))
+    tweets.push(new_tweets)
+    fs.writeFileSync(filename, JSON.stringify(tweets))
 }
 
 // Don't create art for tweeets that are edited
 async function Run() {
+    ELON_TWEETS_JSON_NAME = "elon_tweets.json"
     // Get tweets 
     // Check if there are new tweets 
     // Ask for chatgpt to reformat 
@@ -53,6 +56,7 @@ async function Run() {
     // Post 
     const tweets = await GetElonTweets()
     console.log(tweets)
+    RecordTweets(ELON_TWEETS_JSON_NAME, tweets)
 }
 
 Run()
