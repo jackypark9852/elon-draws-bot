@@ -48,7 +48,7 @@ function FilterNewTweets(tweets, processed_tweets) {
 
 async function RecordTweets(filename, new_tweets, processed_tweets) {
     combined_tweets = processed_tweets.concat(new_tweets)
-    combined_created_at = combined_tweets.map(object => object.created_at)
+    combined_created_at = combined_tweets.map(object => object.created_at) // Array of only created_date fields
     fs.writeFileSync(filename, JSON.stringify(combined_created_at))
 }
 
@@ -57,7 +57,6 @@ async function Run() {
     ELON_TWEETS_JSON_NAME = "elon_tweets.json"
 
     const processed_tweets = JSON.parse(fs.readFileSync(ELON_TWEETS_JSON_NAME))
-    // console.log(processed_tweets)
     // Get tweets 
     const tweets = await GetElonTweets()
     // Check if there are new tweets 
