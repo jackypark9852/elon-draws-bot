@@ -55,6 +55,24 @@ async function RecordTweets(filename, new_tweets, processed_tweets_created_at) {
   fs.writeFileSync(filename, JSON.stringify(combined_created_at));
 }
 
+async function GenerateArtPrompts(texts) {
+  console.log(texts);
+  const prompts = await texts.map(async (text) => {
+    const { data } = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt:
+        "Using the following tweet enclosed in single quotation marks `" +
+        text +
+        "`, generate a prompt for ai art generator to visualize the message the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.",
+      max_tokens: 100,
+      temperature: 0.7,
+    });
+    const prompt = data.choices[0].text.trim();
+    return prompt;
+  });
+  return Promise.all(prompts);
+}
+
 // Don't create art for tweeets that are edited
 async function Run() {
   ELON_TWEETS_JSON_NAME = "elon_tweets.json";
@@ -65,15 +83,11 @@ async function Run() {
   // Check if there are new tweets
   const filtered_tweets = FilterNewTweets(tweets, processed_tweets);
   // Ask for chatgpt to reformat
-  console.log(filtered_tweets[0].text);
-  const { data } = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt:
-      "Create an ai art generator prompt using the sentence:" +
-      filtered_tweets[0].text,
-  });
-  art_prompt = data?.choices[0]?.text;
-  console.log(art_prompt);
+  const art_prompts = await GenerateArtPrompts(
+    filtered_tweets.map((tweet) => tweet.text)
+  );
+  //   console.log(art_prompts);
+  art_prompts.forEach((prompt) => console.log(prompt));
 
   // Ask for Dall-E to generate image
   // Post
