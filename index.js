@@ -31,7 +31,7 @@ async function GetElonTweets() {
     count: 3
     }
   // download first file
-    const result = await T.get('search/tweets', params)
+    const tweets = await T.get('search/tweets', params)
     // console.log(result)
     return result; 
 }
@@ -56,7 +56,7 @@ async function Run() {
     // Post 
     const tweets = await GetElonTweets()
     console.log(tweets)
-    RecordTweets(ELON_TWEETS_JSON_NAME, tweets)
+    // RecordTweets(ELON_TWEETS_JSON_NAME, tweets)
 }
 
 Run()

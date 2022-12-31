@@ -6,6 +6,7 @@
   "author": "jackypark9852 <jackypark9852@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "lodash": "^4.17.21",
     "twit": "^2.2.11"
   }
 }
