@@ -1,0 +1,11 @@
+{
+  "name": "elon-draws-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jackypark9852/elon-draws-bot.git",
+  "author": "jackypark9852 <jackypark9852@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "twit": "^2.2.11"
+  }
+}
