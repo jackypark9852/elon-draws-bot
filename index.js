@@ -30,3 +30,9 @@ function tweetResult(err, data, response) {
 
 // Don't create art for tweeets that are edited 
 T.get('search/tweets', params, tweetResult)
+
+// Get tweets 
+// Check if there are new tweets 
+// Ask for chatgpt to reformat 
+// Ask for Dall-E to generate image 
+// Post 
