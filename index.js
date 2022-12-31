@@ -56,21 +56,23 @@ async function RecordTweets(filename, new_tweets, processed_tweets_created_at) {
 }
 
 async function GenerateArtPrompts(texts) {
-  console.log(texts);
-  const prompts = await texts.map(async (text) => {
+  const prompts = await texts.map(async (text) => { // Iteratively call GPT-3 API on every input text to get an art prompt
     const { data } = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt:
-        "Using the following tweet enclosed in single quotation marks `" +
-        text +
-        "`, generate a prompt for ai art generator to visualize the message the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.",
+      prompt: CreateGPTPrompt(text), 
       max_tokens: 100,
       temperature: 0.7,
     });
-    const prompt = data.choices[0].text.trim();
+    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns 
     return prompt;
   });
-  return Promise.all(prompts);
+  return Promise.all(prompts); 
+}
+
+function CreateGPTPrompt(text) {
+    return ("Using the following tweet enclosed in single quotation marks `" +
+        text +
+        "`, generate a prompt for ai art generator to visualize the message the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.",)
 }
 
 // Don't create art for tweeets that are edited
@@ -87,7 +89,7 @@ async function Run() {
     filtered_tweets.map((tweet) => tweet.text)
   );
   //   console.log(art_prompts);
-  art_prompts.forEach((prompt) => console.log(prompt));
+  console.log(art_prompts);
 
   // Ask for Dall-E to generate image
   // Post
