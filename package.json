@@ -7,6 +7,8 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.21",
+    "openai": "^3.1.0",
+    "prettier": "^2.8.1",
     "twit": "^2.2.11"
   }
 }
