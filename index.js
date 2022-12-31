@@ -13,11 +13,7 @@ var T = new Twit({
 });
 
 
-// Query using since 
-var params = {
-  q: 'from:@elonmusk AND -filter:replies AND -filter:retweets AND -filter:media -filter:threads',    
-  count: 10
-}
+
 
 function tweetResult(err, data, response) {
     var tweetMsgs = data.statuses;
@@ -28,11 +24,35 @@ function tweetResult(err, data, response) {
     // console.log(tweetMsgs[0])
 }
 
-// Don't create art for tweeets that are edited 
-T.get('search/tweets', params, tweetResult)
+async function GetElonTweets() {
+    // Query using since 
+    var params = {
+    q: 'from:@elonmusk AND -filter:replies AND -filter:retweets AND -filter:media -filter:threads',    
+    count: 3
+    }
+  // download first file
+    const result = await T.get('search/tweets', params)
+    // console.log(result)
+    return result; 
+}
 
-// Get tweets 
-// Check if there are new tweets 
-// Ask for chatgpt to reformat 
-// Ask for Dall-E to generate image 
-// Post 
+function FilterNewTweets(tweets) {
+
+}
+
+async function RecordTweets(filename, tweets) {
+    
+}
+
+// Don't create art for tweeets that are edited
+async function Run() {
+    // Get tweets 
+    // Check if there are new tweets 
+    // Ask for chatgpt to reformat 
+    // Ask for Dall-E to generate image 
+    // Post 
+    const tweets = await GetElonTweets()
+    console.log(tweets)
+}
+
+Run()
