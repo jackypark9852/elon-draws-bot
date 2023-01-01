@@ -31,14 +31,35 @@ function tweetResult(err, data, response) {
 async function GetElonTweets() {
   const params = {
     q: "from:@elonmusk AND -filter:replies AND -filter:retweets AND -filter:media -filter:threads",
-    count: 3,
+    count: 1,
+    include_ext_edit_control: true,
   };
-  const properties = ["text", "created_at"];
+  const properties = ["text", "created_at", "ext_edit_control"];
 
   const { data } = await T.get("search/tweets", params);
+  console.log(data.statuses[0]);
   const result = data.statuses.map((object) => Lodash.pick(object, properties)); // Extract useful properties
 
   return result;
+}
+
+async function NewGetElonTweets() {
+  const params = {
+    id: "44196397",
+    max_results: 10,
+    exclude: "retweets,replies",
+    // include_ext_edit_control: true,
+  };
+  const properties = ["text", "created_at", "ext_edit_control"];
+
+  const { data } = await T.get(
+    "https://api.twitter.com/2/users/:id/tweets",
+    params
+  );
+  console.log(data.data);
+  //   const result = data.statuses.map((object) => Lodash.pick(object, properties)); // Extract useful properties
+
+  //   return result;
 }
 
 // Determines if tweet has been process by creation time
@@ -56,23 +77,40 @@ async function RecordTweets(filename, new_tweets, processed_tweets_created_at) {
 }
 
 async function GenerateArtPrompts(texts) {
-  const prompts = await texts.map(async (text) => { // Iteratively call GPT-3 API on every input text to get an art prompt
+  const prompts = await texts.map(async (text) => {
+    // Iteratively call GPT-3 API on every input text to get an art prompt
     const { data } = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: CreateGPTPrompt(text), 
+      prompt: CreateGPTPrompt(text),
       max_tokens: 100,
-      temperature: 0.7,
+      temperature: 0.75,
     });
-    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns 
+    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
     return prompt;
   });
-  return Promise.all(prompts); 
+  return Promise.all(prompts);
 }
 
 function CreateGPTPrompt(text) {
-    return ("Using the following tweet enclosed in single quotation marks `" +
-        text +
-        "`, generate a prompt for ai art generator to visualize the message the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.",)
+  return (
+    "Using the following tweet enclosed in single quotation marks `" +
+    text +
+    "`, generate a prompt for ai art generator to visualize the message the tweet and make it weird. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response."
+  );
+}
+
+async function GenerateAIImages(prompts) {
+  const image_urls = await prompts.map(async (prompt) => {
+    const { data } = await openai.createImage({
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+    // console.log(data);
+    const image_url = data.data[0].url;
+    return image_url;
+  });
+  return Promise.all(image_urls);
 }
 
 // Don't create art for tweeets that are edited
@@ -81,19 +119,19 @@ async function Run() {
 
   const processed_tweets = JSON.parse(fs.readFileSync(ELON_TWEETS_JSON_NAME));
   // Get tweets
-  const tweets = await GetElonTweets();
-  // Check if there are new tweets
-  const filtered_tweets = FilterNewTweets(tweets, processed_tweets);
-  // Ask for chatgpt to reformat
-  const art_prompts = await GenerateArtPrompts(
-    filtered_tweets.map((tweet) => tweet.text)
-  );
-  //   console.log(art_prompts);
-  console.log(art_prompts);
+  //   const tweets = await GetElonTweets();
+  const tweets = await NewGetElonTweets();
 
-  // Ask for Dall-E to generate image
-  // Post
-  //   RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweets);
+  // Check if there are new tweets
+  //   const filtered_tweets = FilterNewTweets(tweets, processed_tweets);
+
+  // Ask for chatgpt to reformat texts into prompts for ai art
+  //   const art_prompts = await GenerateArtPrompts(
+  //     filtered_tweets.map((tweet) => tweet.text)
+  //   );
+
+  //   const image_urls = await GenerateAIImages(art_prompts);
+  //   console.log(image_urls);
 }
 
 Run();
