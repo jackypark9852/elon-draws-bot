@@ -30,46 +30,27 @@ function tweetResult(err, data, response) {
 
 async function GetElonTweets() {
   const params = {
-    q: "from:@elonmusk AND -filter:replies AND -filter:retweets AND -filter:media -filter:threads",
-    count: 1,
-    include_ext_edit_control: true,
+    query: "from:elonmusk -is:retweet -is:reply -is:quote -has:media",
+    expansions: ["edit_history_tweet_ids"],
   };
-  const properties = ["text", "created_at", "ext_edit_control"];
-
-  const { data } = await T.get("search/tweets", params);
-  console.log(data.statuses[0]);
-  const result = data.statuses.map((object) => Lodash.pick(object, properties)); // Extract useful properties
-
-  return result;
-}
-
-async function NewGetElonTweets() {
-  const params = {
-    id: "44196397",
-    max_results: 10,
-    exclude: "retweets,replies",
-    // include_ext_edit_control: true,
-  };
-  const properties = ["text", "created_at", "ext_edit_control"];
+  const properties = ["text", "edit_history_tweet_ids", "id"];
 
   const { data } = await T.get(
-    "https://api.twitter.com/2/users/:id/tweets",
+    "https://api.twitter.com/2/tweets/search/recent",
     params
   );
-  console.log(data.data);
-  //   const result = data.statuses.map((object) => Lodash.pick(object, properties)); // Extract useful properties
-
-  //   return result;
+  return data.data;
 }
 
 // Determines if tweet has been process by creation time
 // Not using id because edited tweet gets a new id,, making it seem like two posts
 function FilterNewTweets(tweets, processed_tweets) {
-  return tweets.filter((tweet) => !processed_tweets.includes(tweet.created_at));
+  return tweets.filter((tweet) => !processed_tweets.includes(tweet.id));
+  // .filter((tweet) => length(edit_history_tweet_ids) == 1);
 }
 
-async function RecordTweets(filename, new_tweets, processed_tweets_created_at) {
-  new_tweets_created_at = new_tweets.map((object) => object.created_at);
+async function RecordTweets(filename, new_tweets, processed_tweet_ids) {
+  new_tweets_created_at = new_tweets.map((object) => object.id);
   combined_created_at = processed_tweets_created_at.concat(
     new_tweets_created_at
   ); // Array of only created_date fields
@@ -120,7 +101,8 @@ async function Run() {
   const processed_tweets = JSON.parse(fs.readFileSync(ELON_TWEETS_JSON_NAME));
   // Get tweets
   //   const tweets = await GetElonTweets();
-  const tweets = await NewGetElonTweets();
+  const tweets = await GetElonTweets();
+  console.log(tweets);
 
   // Check if there are new tweets
   //   const filtered_tweets = FilterNewTweets(tweets, processed_tweets);
