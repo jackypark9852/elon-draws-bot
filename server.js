@@ -25,4 +25,3 @@ var job = new CronJob(
   true,
   "America/Los_Angeles"
 );
-Run();
