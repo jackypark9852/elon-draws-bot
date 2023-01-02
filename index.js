@@ -5,18 +5,23 @@ const axios = require("axios");
 const { Configuration, OpenAIApi } = require("openai");
 
 require("dotenv").config();
-
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
 });
 const openai = new OpenAIApi(openAI_configuration);
-
 var T = new Twit({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
   consumer_secret: process.env.TWITTER_CONSUMER_KEY_SECRET,
   access_token: process.env.TWITTER_ACCESS_TOKEN,
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
+});
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://jackypark9852:${process.env.MONGO_USER_PW}@elon-art-cluster.hybi4ca.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
 });
 
 async function GetElonTweets() {
@@ -38,9 +43,9 @@ async function GetElonTweets() {
 
 // Determines if tweet has been process by creation time
 // Not using id because edited tweet gets a new id,, making it seem like two posts
-function FilterNewTweets(tweets, processed_tweets) {
+function FilterNewTweets(tweets, processed_tweet_ids) {
   return tweets
-    .filter((tweet) => !processed_tweets.includes(tweet.id))
+    .filter((tweet) => !processed_tweet_ids.includes(tweet.id))
     .filter((tweet) => tweet.edit_history_tweet_ids[0] == tweet.id);
 }
 
@@ -124,42 +129,63 @@ async function PostTweet(text, image_url) {
 
 // Don't create art for tweeets that are edited
 async function Run() {
-  ELON_TWEETS_JSON_NAME = "elon_tweets.json";
-  const processed_tweets = JSON.parse(fs.readFileSync(ELON_TWEETS_JSON_NAME));
-
-  // Get tweets
-  const tweets = await GetElonTweets();
-
-  // Check if there are new tweets
-  const filtered_tweets = FilterNewTweets(tweets, processed_tweets);
-
-  //   Ask for chatgpt to reformat texts into prompts for ai art
-  const art_prompts = await GenerateArtPrompts(
-    filtered_tweets.map((tweet) => tweet.text)
-  );
-
-  // Generate texts
-  const tweet_texts = await GenerateTweetTexts(
-    filtered_tweets.map((tweet) => tweet.text)
-  );
-
-  // Generate images
-  const image_urls = await GenerateAIImages(art_prompts);
   try {
-    const post_requests = tweet_texts.map((text, i) =>
-      PostTweet(text, image_urls[i])
-    );
-    const response = await Promise.all(post_requests);
-    if (post_requests.length == 0) {
-      console.log(`No new tweets found! ${new Date().toJSON()}`);
-    } else {
-      console.log(
-        `${post_requests.length} tweets posted! ${new Date().toJSON()}`
-      );
-    }
-  } catch (err) {
-    console.err(err);
-  }
+    // Connect the client to the server (optional starting in v4.7)
+    await client.connect();
+    console.log("Connected successfully to server");
+    // Tweets posted by the bot are stored here
 
-  RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweets);
+    const processed_tweets = await client
+      .db("elon-art-bot")
+      .collection("tweets")
+      .find()
+      .toArray();
+    const processed_tweet_ids = processed_tweets.map(
+      (tweet) => tweet.source_tweet.id
+    );
+
+    // Get tweets
+    const tweets = await GetElonTweets();
+
+    // Check if there are new tweets
+    const filtered_tweets = FilterNewTweets(tweets, processed_tweet_ids);
+
+    //   Ask for chatgpt to reformat texts into prompts for ai art
+    const art_prompts = await GenerateArtPrompts(
+      filtered_tweets.map((tweet) => tweet.text)
+    );
+
+    // Generate texts
+    const tweet_texts = await GenerateTweetTexts(
+      filtered_tweets.map((tweet) => tweet.text)
+    );
+
+    // Generate images
+    const image_urls = await GenerateAIImages(art_prompts);
+    try {
+      const post_requests = tweet_texts.map((text, i) =>
+        PostTweet(text, image_urls[i])
+      );
+      const response = await Promise.all(post_requests);
+
+      if (post_requests.length == 0) {
+        console.log(`No new tweets found! ${new Date().toJSON()}`);
+      } else {
+        console.log(
+          `${post_requests.length} tweets posted! ${new Date().toJSON()}`
+        );
+      }
+    } catch (err) {
+      console.err(err);
+      return err;
+    }
+
+    RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweet_ids);
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await client.close();
+    console.log("Disconnected from server");
+  }
 }
+
+Run().catch(console.dir);
