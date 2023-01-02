@@ -90,7 +90,6 @@ async function GenerateAIImages(prompts) {
       n: 1,
       size: "1024x1024",
     });
-    // console.log(data);
     const image_url = data.data[0].url;
     return image_url;
   });
@@ -152,11 +151,9 @@ async function Run() {
     const processed_tweet_ids = processed_tweets.map(
       (tweet) => tweet.source_tweet.id
     );
-    console.log(processed_tweet_ids);
 
     // Get tweets
     const tweets = await GetElonTweets();
-    console.log(tweets);
 
     // Check if there are new tweets
     const filtered_tweets = FilterNewTweets(tweets, processed_tweet_ids);
