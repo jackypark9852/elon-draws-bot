@@ -212,14 +212,7 @@ async function test() {
   console.log("test");
 }
 
-// var job = new CronJob(
-//   "*/5 * * * *",
-//   () => Run(),
-//   null,
-//   true,
-//   "America/Los_Angeles"
-// );
-
+console.log("App Started");
 var job = new CronJob(
   "*/5 * * * *",
   function () {
