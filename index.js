@@ -2,6 +2,7 @@ const Twit = require("twit");
 const fs = require("fs");
 const download = require("image-downloader");
 const axios = require("axios");
+var CronJob = require("cron").CronJob;
 const { Configuration, OpenAIApi } = require("openai");
 
 require("dotenv").config();
@@ -207,4 +208,24 @@ async function Run() {
   }
 }
 
-Run().catch(console.dir);
+async function test() {
+  console.log("test");
+}
+
+// var job = new CronJob(
+//   "*/5 * * * *",
+//   () => Run(),
+//   null,
+//   true,
+//   "America/Los_Angeles"
+// );
+
+var job = new CronJob(
+  "*/5 * * * *",
+  function () {
+    Run();
+  },
+  null,
+  true,
+  "America/Los_Angeles"
+);
