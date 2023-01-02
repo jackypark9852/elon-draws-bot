@@ -5,6 +5,7 @@ const download = require("image-downloader");
 const uuid = require("uuid");
 const { type } = require("os");
 const { Configuration, OpenAIApi } = require("openai");
+const { time } = require("console");
 
 const config_file = fs.readFileSync("./config.json");
 const config = JSON.parse(config_file);
@@ -101,7 +102,7 @@ async function GenerateTweetTexts(texts) {
 }
 
 function CreateGPTTweetTextPrompt(text) {
-  return `Write an exciting tweet announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet" Make sure to be very emotoinal and expressive. Do not include '@elonmusk'.`;
+  return `Write an exciting tweet announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet" Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
 }
 
 async function PostTweet(text, image_url) {
@@ -149,15 +150,22 @@ async function Run() {
   console.log(tweet_texts);
 
   // Generate images
-  //   const image_urls = await GenerateAIImages(art_prompts);
+  const image_urls = await GenerateAIImages(art_prompts);
+  try {
+    const post_requests = tweet_texts.map((text, i) =>
+      PostTweet(text, image_urls[i])
+    );
+    const response = await Promise.all(post_requests);
+    if (post_requests.length == 0) {
+      console.log(`No new tweets found! ${new Date().toJSON()}`);
+    } else {
+      console.log(
+        `${post_requests.length} tweets posted! ${new Date().toJSON()}`
+      );
+    }
+  } catch (err) {
+    console.err(err);
+  }
 
-  //   const post_requests = tweet_texts.map((text, i) =>
-  //     PostTweet(text, image_urls[i])
-  //   );
-  //   const response = await Promise.all(post_requests);
-  console.log("All posts completed!");
-  //   console.log(filtered_tweets);
-  //   PostTweet(tweet_texts[0], DUMMY_IMAGE_URL);
+  RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweets);
 }
-
-Run();
