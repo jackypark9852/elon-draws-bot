@@ -5,7 +5,7 @@ const axios = require("axios");
 var CronJob = require("cron").CronJob;
 const { Configuration, OpenAIApi } = require("openai");
 
-require("dotenv").config();
+// require("dotenv").config();
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
 });
