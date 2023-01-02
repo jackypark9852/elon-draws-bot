@@ -168,7 +168,6 @@ async function Run() {
     const tweet_texts = await GenerateTweetTexts(
       filtered_tweets.map((tweet) => tweet.text)
     );
-    console.log(filtered_tweets);
 
     // Generate images
     const image_urls = await GenerateAIImages(art_prompts);
