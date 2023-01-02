@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
@@ -25,7 +25,7 @@ const client = new MongoClient(uri, {
 });
 
 async function GetElonTweets() {
-  ELONS_LAST_POST_2022 = "1609254628113420290";
+  const ELONS_LAST_POST_2022 = "1609254628113420290";
   const params = {
     query: "from:elonmusk -is:retweet -is:reply -is:quote -has:media",
     max_results: 10,
