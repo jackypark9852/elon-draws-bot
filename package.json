@@ -6,11 +6,20 @@
   "author": "jackypark9852 <jackypark9852@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "image-downloader": "^4.3.0",
     "lodash": "^4.17.21",
     "openai": "^3.1.0",
     "prettier": "^2.8.1",
     "twit": "^2.2.11",
     "uuid": "^9.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "check-env": "node -e 'console.log(process.env)' | grep npm"
+  },
+  "engines": {
+    "yarn": "YARN NO LONGER USED - use npm instead.",
+    "node": "14.x"
   }
 }

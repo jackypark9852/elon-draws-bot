@@ -1,24 +1,21 @@
 const Twit = require("twit");
 const fs = require("fs");
-const Lodash = require("lodash");
 const download = require("image-downloader");
-const uuid = require("uuid");
-const { type } = require("os");
 const { Configuration, OpenAIApi } = require("openai");
-const { time } = require("console");
 
-const config_file = fs.readFileSync("./config.json");
-const config = JSON.parse(config_file);
+require("dotenv").config();
+
 const openAI_configuration = new Configuration({
-  apiKey: config.OPENAI_API.SECRET_KEY,
+  apiKey: process.env.OPENAI_SECRET_KEY,
 });
 const openai = new OpenAIApi(openAI_configuration);
+console.log(process.env.TWITTER_CONSUMER_KEY);
 
 var T = new Twit({
-  consumer_key: config.TWITTER_API.CONSUMER_KEY,
-  consumer_secret: config.TWITTER_API.CONSUMER_KEY_SECRET,
-  access_token: config.TWITTER_API.ACCESS_TOKEN,
-  access_token_secret: config.TWITTER_API.ACCESS_TOKEN_SECRET,
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_KEY_SECRET,
+  access_token: process.env.TWITTER_ACCESS_TOKEN,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
 });
 
@@ -169,3 +166,5 @@ async function Run() {
 
   RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweets);
 }
+
+Run();
