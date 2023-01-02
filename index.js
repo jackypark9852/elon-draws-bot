@@ -102,7 +102,7 @@ async function GenerateTweetTexts(texts) {
     const { data } = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: CreateGPTTweetTextPrompt(text),
-      max_tokens: 70,
+      max_tokens: 60,
       temperature: 1,
     });
     const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
@@ -112,7 +112,7 @@ async function GenerateTweetTexts(texts) {
 }
 
 function CreateGPTTweetTextPrompt(text) {
-  return `Write an exciting tweet announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet" Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
+  return `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
 }
 
 async function PostTweet(text, image_url) {
