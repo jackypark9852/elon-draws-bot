@@ -1,11 +1,10 @@
-const Twit = require("twit");
-const fs = require("fs");
-const download = require("image-downloader");
-const axios = require("axios");
-var CronJob = require("cron").CronJob;
-const { Configuration, OpenAIApi } = require("openai");
+import Twit from "twit";
+import axios from "axios";
+import { Configuration, OpenAIApi } from "openai";
+import { MongoClient, ServerApiVersion } from "mongodb";
+import dotenv from "dotenv";
+dotenv.config();
 
-// require("dotenv").config();
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
 });
@@ -17,7 +16,7 @@ var T = new Twit({
   access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
 });
-const { MongoClient, ServerApiVersion } = require("mongodb");
+
 const uri = `mongodb+srv://jackypark9852:${process.env.MONGO_USER_PW}@elon-art-cluster.hybi4ca.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -208,17 +207,4 @@ async function Run() {
   }
 }
 
-async function test() {
-  console.log("test");
-}
-
-console.log("App Started");
-var job = new CronJob(
-  "*/5 * * * *",
-  function () {
-    Run();
-  },
-  null,
-  true,
-  "America/Los_Angeles"
-);
+export default Run;

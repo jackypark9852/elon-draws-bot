@@ -2,6 +2,7 @@
   "name": "elon-draws-bot",
   "version": "1.0.0",
   "main": "index.js",
+  "type":"module",
   "repository": "https://github.com/jackypark9852/elon-draws-bot.git",
   "author": "jackypark9852 <jackypark9852@gmail.com>",
   "license": "MIT",
@@ -19,7 +20,7 @@
     "uuid": "^9.0.0"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "check-env": "node -e 'console.log(process.env)' | grep npm"
   },
   "engines": {
