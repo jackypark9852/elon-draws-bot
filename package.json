@@ -6,9 +6,11 @@
   "author": "jackypark9852 <jackypark9852@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "image-downloader": "^4.3.0",
     "lodash": "^4.17.21",
     "openai": "^3.1.0",
     "prettier": "^2.8.1",
-    "twit": "^2.2.11"
+    "twit": "^2.2.11",
+    "uuid": "^9.0.0"
   }
 }
