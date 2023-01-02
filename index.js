@@ -1,6 +1,7 @@
 const Twit = require("twit");
 const fs = require("fs");
 const download = require("image-downloader");
+const axios = require("axios");
 const { Configuration, OpenAIApi } = require("openai");
 
 require("dotenv").config();
@@ -9,7 +10,6 @@ const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
 });
 const openai = new OpenAIApi(openAI_configuration);
-console.log(process.env.TWITTER_CONSUMER_KEY);
 
 var T = new Twit({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -103,16 +103,15 @@ function CreateGPTTweetTextPrompt(text) {
 }
 
 async function PostTweet(text, image_url) {
-  download_params = {
+  const imageResponse = await axios({
     url: image_url,
-    dest: "../../images",
-  };
-  const { filename } = await download.image(download_params);
-  console.log(`Saved to ${filename}`);
-
-  const image = fs.readFileSync(filename, { encoding: "base64" }); // Load image in b64 encoding
+    method: "GET",
+    responseType: "arraybuffer",
+  });
+  const file = Buffer.from(imageResponse.data, "binary");
+  const base64EncodedFile = file.toString("base64");
   const { data } = await T.post("media/upload", {
-    media_data: image,
+    media_data: base64EncodedFile,
   });
   const media_id_string = data.media_id_string;
 
@@ -138,13 +137,11 @@ async function Run() {
   const art_prompts = await GenerateArtPrompts(
     filtered_tweets.map((tweet) => tweet.text)
   );
-  console.log(art_prompts);
 
   // Generate texts
   const tweet_texts = await GenerateTweetTexts(
     filtered_tweets.map((tweet) => tweet.text)
   );
-  console.log(tweet_texts);
 
   // Generate images
   const image_urls = await GenerateAIImages(art_prompts);
@@ -166,5 +163,3 @@ async function Run() {
 
   RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweets);
 }
-
-Run();
