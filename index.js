@@ -152,9 +152,11 @@ async function Run() {
     const processed_tweet_ids = processed_tweets.map(
       (tweet) => tweet.source_tweet.id
     );
+    console.log(processed_tweet_ids);
 
     // Get tweets
     const tweets = await GetElonTweets();
+    console.log(tweets);
 
     // Check if there are new tweets
     const filtered_tweets = FilterNewTweets(tweets, processed_tweet_ids);
