@@ -32,7 +32,6 @@ async function GetElonTweets() {
     since_id: ELONS_LAST_POST_2022,
     expansions: ["edit_history_tweet_ids"],
   };
-  const properties = ["text", "edit_history_tweet_ids", "id"];
 
   const { data } = await T.get(
     "https://api.twitter.com/2/tweets/search/recent",
@@ -49,10 +48,20 @@ function FilterNewTweets(tweets, processed_tweet_ids) {
     .filter((tweet) => tweet.edit_history_tweet_ids[0] == tweet.id);
 }
 
-async function RecordTweets(filename, new_tweets, processed_tweets_ids) {
-  const new_tweets_ids = new_tweets.map((tweet) => tweet.id);
-  const combined_ids = processed_tweets_ids.concat(new_tweets_ids); // Array of only created_date fields
-  fs.writeFileSync(filename, JSON.stringify(combined_ids));
+async function RecordTweets(
+  client,
+  filtered_tweets,
+  posted_tweets,
+  art_prompts
+) {
+  const documents = posted_tweets.map((tweet, i) => ({
+    source_tweet: filtered_tweets[i],
+    tweet: tweet,
+    art_prompt: art_prompts[i],
+  }));
+  if (documents.length != 0) {
+    await client.db("elon-art-bot").collection("tweets").insertMany(documents);
+  }
 }
 
 async function GenerateArtPrompts(texts) {
@@ -94,7 +103,7 @@ async function GenerateTweetTexts(texts) {
     const { data } = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: CreateGPTTweetTextPrompt(text),
-      max_tokens: 1000,
+      max_tokens: 70,
       temperature: 1,
     });
     const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
@@ -159,28 +168,39 @@ async function Run() {
     const tweet_texts = await GenerateTweetTexts(
       filtered_tweets.map((tweet) => tweet.text)
     );
+    console.log(filtered_tweets);
 
     // Generate images
     const image_urls = await GenerateAIImages(art_prompts);
+
     try {
-      const post_requests = tweet_texts.map((text, i) =>
+      // Post tweets
+      const promises = tweet_texts.map((text, i) =>
         PostTweet(text, image_urls[i])
       );
-      const response = await Promise.all(post_requests);
+      const responses = await Promise.all(promises);
 
-      if (post_requests.length == 0) {
+      // Compile info about posted tweets
+      const posted_tweets = responses.map((response) => ({
+        created_at: response.data.created_at,
+        id: response.data.id_str,
+        text: response.data.text,
+      }));
+
+      await RecordTweets(client, filtered_tweets, posted_tweets, art_prompts);
+
+      if (posted_tweets.length == 0) {
         console.log(`No new tweets found! ${new Date().toJSON()}`);
       } else {
+        // RecordTweets(client, filtered_tweets);
         console.log(
-          `${post_requests.length} tweets posted! ${new Date().toJSON()}`
+          `${posted_tweets.length} tweets posted! ${new Date().toJSON()}`
         );
       }
     } catch (err) {
-      console.err(err);
+      console.log(err);
       return err;
     }
-
-    RecordTweets(ELON_TWEETS_JSON_NAME, filtered_tweets, processed_tweet_ids);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
