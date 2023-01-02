@@ -101,7 +101,7 @@ async function GenerateTweetTexts(texts) {
 }
 
 function CreateGPTTweetTextPrompt(text) {
-  return `Write an exciting tweet announcing that I drew something inspired by the following quote by @elonmusk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet" Make sure to be very emotoinal and expressive`;
+  return `Write an exciting tweet announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet" Make sure to be very emotoinal and expressive. Do not include '@elonmusk'.`;
 }
 
 async function PostTweet(text, image_url) {
@@ -140,21 +140,24 @@ async function Run() {
   const art_prompts = await GenerateArtPrompts(
     filtered_tweets.map((tweet) => tweet.text)
   );
+  console.log(art_prompts);
 
   // Generate texts
   const tweet_texts = await GenerateTweetTexts(
     filtered_tweets.map((tweet) => tweet.text)
   );
+  console.log(tweet_texts);
+
   // Generate images
   //   const image_urls = await GenerateAIImages(art_prompts);
 
+  //   const post_requests = tweet_texts.map((text, i) =>
+  //     PostTweet(text, image_urls[i])
+  //   );
+  //   const response = await Promise.all(post_requests);
+  console.log("All posts completed!");
   //   console.log(filtered_tweets);
-  //   console.log(art_prompts);
-  //   console.log(tweet_texts);
-  const DUMMY_IMAGE_URL =
-    "https://appadvice.com/cdn-cgi/mirage/eaec890b32ee033953d1542683469dcff009881bb0833aa6a0a8b9f19c50cef4/1280/https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/85/03/65/8503655a-c5d9-c189-f5a9-ad7cd931fbef/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/256x256bb.jpg";
-
-  PostTweet(tweet_texts[0], DUMMY_IMAGE_URL);
+  //   PostTweet(tweet_texts[0], DUMMY_IMAGE_URL);
 }
 
 Run();
