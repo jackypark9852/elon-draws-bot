@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-// import dotenv from "dotenv";
-// dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
@@ -68,7 +68,7 @@ async function GenerateArtPrompt(text) {
   const art_prompt_prompt = `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
   const { data } = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: GenerateArtPrompt(text),
+    prompt: art_prompt_prompt,
     max_tokens: 100,
     temperature: 0.9,
   });
@@ -199,4 +199,4 @@ async function Run() {
   }
 }
 
-export default Run;
+export { Run, GenerateArtPrompt };
