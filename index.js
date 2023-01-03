@@ -86,23 +86,19 @@ async function GenerateAIImage(prompt) {
   return image_url;
 }
 
-async function GenerateTweetTexts(texts) {
-  const prompts = await texts.map(async (text) => {
-    // Iteratively call GPT-3 API on every input text to get an art prompt
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: CreateGPTTweetTextPrompt(text),
-      max_tokens: 60,
-      temperature: 1,
-    });
-    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
-    return prompt;
-  });
-  return Promise.all(prompts);
-}
+async function GenerateTweetText(text) {
+  const text_prompt = `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
 
-function CreateGPTTweetTextPrompt(text) {
-  return `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
+  // Iteratively call GPT-3 API on every input text to get an art prompt
+  const { data } = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: text_prompt,
+    max_tokens: 60,
+    temperature: 1,
+  });
+
+  const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
+  return prompt;
 }
 
 async function PostTweet(text, image_url) {
@@ -154,7 +150,7 @@ async function Run() {
     );
 
     // Generate texts
-    const tweet_texts = await GenerateTweetTexts(
+    const tweet_texts = await GenerateTweetText(
       filtered_tweets.map((tweet) => tweet.text)
     );
 
@@ -196,4 +192,4 @@ async function Run() {
   }
 }
 
-export { Run, GenerateArtPrompt, GenerateAIImage };
+export { Run, GenerateArtPrompt, GenerateAIImage, GenerateTweetText };
