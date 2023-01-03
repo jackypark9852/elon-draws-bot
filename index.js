@@ -76,17 +76,14 @@ async function GenerateArtPrompt(text) {
   return prompt;
 }
 
-async function GenerateAIImages(prompts) {
-  const image_urls = await prompts.map(async (prompt) => {
-    const { data } = await openai.createImage({
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-    });
-    const image_url = data.data[0].url;
-    return image_url;
+async function GenerateAIImage(prompt) {
+  const { data } = await openai.createImage({
+    prompt: prompt,
+    n: 1,
+    size: "1024x1024",
   });
-  return Promise.all(image_urls);
+  const image_url = data.data[0].url;
+  return image_url;
 }
 
 async function GenerateTweetTexts(texts) {
@@ -162,7 +159,7 @@ async function Run() {
     );
 
     // Generate images
-    const image_urls = await GenerateAIImages(art_prompts);
+    const image_urls = await GenerateAIImage(art_prompts);
 
     try {
       // Post tweets
@@ -199,4 +196,4 @@ async function Run() {
   }
 }
 
-export { Run, GenerateArtPrompt };
+export { Run, GenerateArtPrompt, GenerateAIImage };
