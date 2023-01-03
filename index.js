@@ -64,23 +64,16 @@ async function RecordTweets(
   }
 }
 
-async function GenerateArtPrompts(texts) {
-  const prompts = await texts.map(async (text) => {
-    // Iteratively call GPT-3 API on every input text to get an art prompt
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: CreateGPTArtPrompt(text),
-      max_tokens: 100,
-      temperature: 0.9,
-    });
-    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
-    return prompt;
+async function GenerateArtPrompt(text) {
+  const art_prompt_prompt = `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
+  const { data } = await openai.createCompletion({
+    model: "text-davinci-003",
+    prompt: GenerateArtPrompt(text),
+    max_tokens: 100,
+    temperature: 0.9,
   });
-  return Promise.all(prompts);
-}
-
-function CreateGPTArtPrompt(text) {
-  return `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
+  const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
+  return prompt;
 }
 
 async function GenerateAIImages(prompts) {
@@ -159,7 +152,7 @@ async function Run() {
     const filtered_tweets = FilterNewTweets(tweets, processed_tweet_ids);
 
     //   Ask for chatgpt to reformat texts into prompts for ai art
-    const art_prompts = await GenerateArtPrompts(
+    const art_prompts = await GenerateArtPrompt(
       filtered_tweets.map((tweet) => tweet.text)
     );
 
