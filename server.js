@@ -16,12 +16,14 @@ app.listen(PORT, () => {
 
 // Start
 console.log("App Started");
-var job = new CronJob(
-  "*/5 * * * *",
-  function () {
-    Run();
-  },
-  null,
-  true,
-  "America/Los_Angeles"
-);
+// var job = new CronJob(
+//   "*/5 * * * *",
+//   function () {
+//     Run();
+//   },
+//   null,
+//   true,
+//   "America/Los_Angeles"
+// );
+
+Run();
