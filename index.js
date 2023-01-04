@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-// import dotenv from "dotenv";
-// dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
@@ -79,18 +79,31 @@ async function GenerateAIImage(prompt) {
 }
 async function GenerateTweetText(text) {
   try {
-    const text_prompt = `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
+    const TWEET_CHAR_LIMIT = 280;
+    const ATTEMPTS_LIMIT = 5;
+    const text_prompt = `Generate a short tweet annoucing that I created an image inspired by a new tweet from Elon Musk that includes a short opinion on Elon's tweet provided here: ${text}, and also talk about the significance of art in one short sentence.`;
+    let attempts_count = 0;
+    while (attempts_count < ATTEMPTS_LIMIT) {
+      attempts_count += 1;
+      const { data } = await openai.createCompletion({
+        // Iteratively call GPT-3 API on every input text to get an art prompt
+        model: "text-davinci-003",
+        prompt: text_prompt,
+        max_tokens: 60,
+        temperature: 1,
+      });
 
-    // Iteratively call GPT-3 API on every input text to get an art prompt
-    const { data } = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: text_prompt,
-      max_tokens: 60,
-      temperature: 1,
-    });
-
-    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
-    return prompt;
+      const prompt = data.choices[0].text
+        .trim()
+        .replace(/(?:https?|ftp):\/\/[\n\S]+/g, ""); // Select the first prompt that API returns, remove whitespaces and links
+      if (prompt.length <= TWEET_CHAR_LIMIT) {
+        return prompt;
+      } else {
+        console.log(`Generated tweet is too long (length: ${prompt.length}):`);
+        console.log(prompt);
+      }
+    }
+    throw new Error("Failed to generate tweet text shorter than 280 chars");
   } catch (err) {
     throw err;
   }
@@ -110,6 +123,7 @@ async function GenerateTweet(src_tweet) {
     const text_req = GenerateTweetText(src_tweet.text);
     const art_prompt = await GenerateArtPrompt(src_tweet.text);
     const image_url_req = GenerateAIImage(art_prompt);
+    const attachment_url = `https://twitter.com/twitter/status/${src_tweet.id}`;
 
     const [text, image_url] = await Promise.all([text_req, image_url_req]); // Wait for promises to be resolved
 
@@ -117,6 +131,7 @@ async function GenerateTweet(src_tweet) {
       source_tweet: src_tweet,
       tweet: {
         text: text,
+        attachment_url: attachment_url,
         image_url: image_url,
       },
       art_prompt: art_prompt,
@@ -143,6 +158,7 @@ async function PostTweet(tweet, mongo_client) {
   try {
     const image = await ImageUrl2B64File(tweet.tweet.image_url);
     const text = tweet.tweet.text;
+    const attachment_url = tweet.tweet.attachment_url;
 
     // Upload image to twitter and retrieve media_id used to embed image in a post
     const {
@@ -155,6 +171,7 @@ async function PostTweet(tweet, mongo_client) {
     const { data } = await T.post("statuses/update", {
       status: text,
       media_ids: media_id_string,
+      attachment_url: attachment_url,
     });
 
     // Create object to be recorded in mongo db
