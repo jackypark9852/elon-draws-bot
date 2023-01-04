@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
@@ -24,19 +24,23 @@ const client = new MongoClient(uri, {
 });
 
 async function GetElonTweets() {
-  const ELONS_LAST_POST_2022 = "1609254628113420290";
-  const params = {
-    query: "from:elonmusk -is:retweet -is:reply -is:quote -has:media",
-    max_results: 10,
-    since_id: ELONS_LAST_POST_2022,
-    expansions: ["edit_history_tweet_ids"],
-  };
+  try {
+    const ELONS_LAST_POST_2022 = "1609254628113420290";
+    const params = {
+      query: "from:elonmusk -is:retweet -is:reply -has:media",
+      max_results: 10,
+      since_id: ELONS_LAST_POST_2022,
+      expansions: ["edit_history_tweet_ids"],
+    };
 
-  const { data } = await T.get(
-    "https://api.twitter.com/2/tweets/search/recent",
-    params
-  );
-  return data.data;
+    const { data } = await T.get(
+      "https://api.twitter.com/2/tweets/search/recent",
+      params
+    );
+    return data.data;
+  } catch (err) {
+    throw err;
+  }
 }
 // Determines if tweet has been process by creation time
 // Not using id because edited tweet gets a new id,, making it seem like two posts
@@ -46,38 +50,50 @@ function FilterNewTweets(tweets, processed_tweet_ids) {
     .filter((tweet) => tweet.edit_history_tweet_ids[0] == tweet.id);
 }
 async function GenerateArtPrompt(text) {
-  const art_prompt_prompt = `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
-  const { data } = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: art_prompt_prompt,
-    max_tokens: 100,
-    temperature: 0.9,
-  });
-  const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
-  return prompt;
+  try {
+    const art_prompt_prompt = `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
+    const { data } = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: art_prompt_prompt,
+      max_tokens: 100,
+      temperature: 0.9,
+    });
+    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
+    return prompt;
+  } catch (err) {
+    throw err;
+  }
 }
 async function GenerateAIImage(prompt) {
-  const { data } = await openai.createImage({
-    prompt: prompt,
-    n: 1,
-    size: "1024x1024",
-  });
-  const image_url = data.data[0].url;
-  return image_url;
+  try {
+    const { data } = await openai.createImage({
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+    const image_url = data.data[0].url;
+    return image_url;
+  } catch (err) {
+    throw err;
+  }
 }
 async function GenerateTweetText(text) {
-  const text_prompt = `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
+  try {
+    const text_prompt = `Write an exciting tweet (limited to 250 chracters) announcing that I drew something inspired by the following tweet by Elon Musk: '${text}'. Make sure to include a random opinion about art. Keep the quote itself in the tweet unless it will make the tweet exceed 250 characters. Make sure to be very emotoinal and expressive. Do not include '@elonmusk'. Make sure to include '#ElonMusk' at the end.`;
 
-  // Iteratively call GPT-3 API on every input text to get an art prompt
-  const { data } = await openai.createCompletion({
-    model: "text-davinci-003",
-    prompt: text_prompt,
-    max_tokens: 60,
-    temperature: 1,
-  });
+    // Iteratively call GPT-3 API on every input text to get an art prompt
+    const { data } = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: text_prompt,
+      max_tokens: 60,
+      temperature: 1,
+    });
 
-  const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
-  return prompt;
+    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
+    return prompt;
+  } catch (err) {
+    throw err;
+  }
 }
 async function GenerateTweet(src_tweet) {
   /* 
@@ -106,63 +122,73 @@ async function GenerateTweet(src_tweet) {
       art_prompt: art_prompt,
     };
   } catch (err) {
-    console.log(err);
+    throw err;
   }
 }
 async function ImageUrl2B64File(image_url) {
-  const imageResponse = await axios({
-    url: image_url,
-    method: "GET",
-    responseType: "arraybuffer",
-  });
-  const file = Buffer.from(imageResponse.data, "binary");
-  const base64EncodedFile = file.toString("base64");
-  return base64EncodedFile;
+  try {
+    const imageResponse = await axios({
+      url: image_url,
+      method: "GET",
+      responseType: "arraybuffer",
+    });
+    const file = Buffer.from(imageResponse.data, "binary");
+    const base64EncodedFile = file.toString("base64");
+    return base64EncodedFile;
+  } catch (err) {
+    throw err;
+  }
 }
 async function PostTweet(tweet, mongo_client) {
-  const image = await ImageUrl2B64File(tweet.tweet.image_url);
-  const text = tweet.tweet.text;
+  try {
+    const image = await ImageUrl2B64File(tweet.tweet.image_url);
+    const text = tweet.tweet.text;
 
-  // Upload image to twitter and retrieve media_id used to embed image in a post
-  const {
-    data: { media_id_string },
-  } = await T.post("media/upload", {
-    media_data: image,
-  });
+    // Upload image to twitter and retrieve media_id used to embed image in a post
+    const {
+      data: { media_id_string },
+    } = await T.post("media/upload", {
+      media_data: image,
+    });
 
-  // Post a new status and retrieve info about the post, so that it can be recorded in mongo database
-  const { data } = await T.post("statuses/update", {
-    status: text,
-    media_ids: media_id_string,
-  });
+    // Post a new status and retrieve info about the post, so that it can be recorded in mongo database
+    const { data } = await T.post("statuses/update", {
+      status: text,
+      media_ids: media_id_string,
+    });
 
-  // Create object to be recorded in mongo db
-  const posted_tweet = {
-    ...tweet,
-    tweet: {
-      id: data.id_str,
-      created_at: data.created_at,
-      ...tweet.tweet,
-    },
-  };
+    // Create object to be recorded in mongo db
+    const posted_tweet = {
+      ...tweet,
+      tweet: {
+        id: data.id_str,
+        created_at: data.created_at,
+        ...tweet.tweet,
+      },
+    };
 
-  await RecordTweet(mongo_client, posted_tweet);
-  return posted_tweet;
+    await RecordTweet(mongo_client, posted_tweet);
+    return posted_tweet;
+  } catch (err) {
+    throw err;
+  }
 }
-
 async function RecordTweet(client, posted_tweet) {
-  const response = await client
-    .db("elon-art-bot")
-    .collection("tweets")
-    .insertOne(posted_tweet);
-  return response;
+  try {
+    const response = await client
+      .db("elon-art-bot")
+      .collection("tweets")
+      .insertOne(posted_tweet);
+    return response;
+  } catch (err) {
+    throw err;
+  }
 }
-// Don't create art for tweeets that are edited
 async function Run() {
   try {
     // Connect the client to the server (optional starting in v4.7)
     await client.connect();
-    console.log("Connected successfully to server");
+    console.log("Connected to Mongo server successfully");
     // Tweets posted by the bot are stored here
 
     const processed_tweets = await client
@@ -180,51 +206,31 @@ async function Run() {
     // Check if there are new tweets
     const filtered_tweets = FilterNewTweets(tweets, processed_tweet_ids);
 
-    //   Ask for chatgpt to reformat texts into prompts for ai art
-    const art_prompts = await GenerateArtPrompt(
-      filtered_tweets.map((tweet) => tweet.text)
-    );
-
-    // Generate texts
-    const tweet_texts = await GenerateTweetText(
-      filtered_tweets.map((tweet) => tweet.text)
-    );
-
-    // Generate images
-    const image_urls = await GenerateAIImage(art_prompts);
-
-    try {
-      // Post tweets
-      const promises = tweet_texts.map((text, i) =>
-        PostTweet(text, image_urls[i])
-      );
-      const responses = await Promise.all(promises);
-
-      // Compile info about posted tweets
-      const posted_tweets = responses.map((response) => ({
-        created_at: response.data.created_at,
-        id: response.data.id_str,
-        text: response.data.text,
-      }));
-
-      await RecordTweet(client, filtered_tweets, posted_tweets, art_prompts);
-
-      if (posted_tweets.length == 0) {
-        console.log(`No new tweets found! ${new Date().toJSON()}`);
-      } else {
-        // RecordTweets(client, filtered_tweets);
-        console.log(
-          `${posted_tweets.length} tweets posted! ${new Date().toJSON()}`
-        );
-      }
-    } catch (err) {
-      console.log(err);
-      return err;
+    // Abort if there are no new tweets
+    if (filtered_tweets.length == 0) {
+      console.log("No new tweets were found!");
+      return;
     }
+
+    // Generate tweets
+    const generate_tweet_promises = filtered_tweets.map(GenerateTweet);
+    const generated_tweets = await Promise.all(generate_tweet_promises);
+
+    // Post Tweets
+    const post_tweet_promises = generated_tweets.map((tweet) =>
+      PostTweet(tweet, client)
+    );
+    const posted_tweets = await Promise.all(post_tweet_promises);
+
+    // Give debug message
+    console.log("Post succesful!");
+    console.log(`Number of tweet(s) posted: ${posted_tweets.length}`);
+  } catch (err) {
+    console.log(err);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
-    console.log("Disconnected from server");
+    console.log("Disconnected from Mongo server");
   }
 }
 

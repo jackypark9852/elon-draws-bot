@@ -1,5 +1,5 @@
 import express from "express";
-import Run from "./index.js";
+import { Run } from "./index.js";
 import { CronJob } from "cron";
 
 const app = express();
@@ -16,14 +16,13 @@ app.listen(PORT, () => {
 
 // Start
 console.log("App Started");
-// var job = new CronJob(
-//   "*/5 * * * *",
-//   function () {
-//     Run();
-//   },
-//   null,
-//   true,
-//   "America/Los_Angeles"
-// );
-
-Run();
+var job = new CronJob(
+  "*/5 * * * *",
+  function () {
+    Run();
+  },
+  null,
+  true,
+  "America/Los_Angeles"
+);
+// Run();
