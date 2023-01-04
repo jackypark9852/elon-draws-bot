@@ -9,4 +9,9 @@ import {
 } from "./index.js";
 import { MongoClient, ServerApiVersion } from "mongodb";
 
-Run();
+const uri = `mongodb+srv://jackypark9852:${process.env.MONGO_USER_PW}@elon-art-cluster.hybi4ca.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
