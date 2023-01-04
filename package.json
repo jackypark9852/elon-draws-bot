@@ -18,7 +18,8 @@
   },
   "scripts": {
     "start": "node server.js",
-    "check-env": "node -e 'console.log(process.env)' | grep npm"
+    "check-env": "node -e 'console.log(process.env)' | grep npm", 
+    "test": "node test.js"
   },
   "engines": {
     "node": "14.x"
