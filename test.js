@@ -18,7 +18,7 @@ const client = new MongoClient(uri, {
 
 const tweets = await GetElonTweets();
 console.log(tweets);
-const text = await GenerateTweetText(tweets[4].text);
+const text = await GenerateTweetText(tweets[1].text);
 console.log(text);
 
 // const prompt =
