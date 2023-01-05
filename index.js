@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-// import dotenv from "dotenv";
-// dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
@@ -81,7 +81,7 @@ async function GenerateTweetText(text) {
   try {
     const TWEET_CHAR_LIMIT = 280;
     const ATTEMPTS_LIMIT = 5;
-    const text_prompt = `Generate a short tweet annoucing that I created an image inspired by a new tweet from Elon Musk that includes a short opinion on Elon's tweet provided here: ${text}, and also talk about the significance of art in one short sentence.`;
+    const text_prompt = `Write a tweet that shows off my drawing of @elonmusk's post and comment on @elonmusk's tweet provided here: ${text}. Make it sound like a elon musk fan`;
     let attempts_count = 0;
     while (attempts_count < ATTEMPTS_LIMIT) {
       attempts_count += 1;
