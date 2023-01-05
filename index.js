@@ -2,8 +2,8 @@ import Twit from "twit";
 import axios from "axios";
 import { Configuration, OpenAIApi } from "openai";
 import { MongoClient, ServerApiVersion } from "mongodb";
-import dotenv from "dotenv";
-dotenv.config();
+// import dotenv from "dotenv";
+// dotenv.config();
 
 const openAI_configuration = new Configuration({
   apiKey: process.env.OPENAI_SECRET_KEY,
