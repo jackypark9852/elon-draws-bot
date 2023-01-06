@@ -68,7 +68,7 @@ Do not include anything else but the description it self in the response. Do not
     });
     const prompt = data.choices[0].text
       .trim()
-      .replace("Elon Musk" | "Elon", "man"); // Select the first prompt that API returns
+      .replace(/Elon Musk|Elon/g, "man"); // Select the first prompt that API returns
     return prompt;
   } catch (err) {
     throw err;
@@ -130,12 +130,30 @@ async function GenerateTweet(src_tweet) {
   }
   */
   try {
-    const text_req = GenerateTweetText(src_tweet.text);
-    const art_prompt = await GenerateArtPrompt(src_tweet.text);
-    const image_url_req = GenerateAIImage(art_prompt);
-    const attachment_url = `https://twitter.com/twitter/status/${src_tweet.id}`;
+    const text = await GenerateTweetText(src_tweet.text);
+    const MAX_IMAGE_GENERATION_ATTEMPTS = 5;
+    let art_prompt, image_url;
+    let counter = 0;
 
-    const [text, image_url] = await Promise.all([text_req, image_url_req]); // Wait for promises to be resolved
+    while (true) {
+      counter += 1;
+      try {
+        art_prompt = await GenerateArtPrompt(src_tweet.text);
+        image_url = await GenerateAIImage(art_prompt);
+        break;
+      } catch (err) {
+        console.log(
+          `Image generation attempt ${counter} failed, trying again...`
+        );
+        console.log(`>>> Art prompt: ${art_prompt}`);
+        if (counter == MAX_IMAGE_GENERATION_ATTEMPTS) {
+          console.log(err);
+          throw new Error("Failed to generate image");
+        }
+      }
+    }
+
+    const attachment_url = `https://twitter.com/twitter/status/${src_tweet.id}`;
 
     return {
       source_tweet: src_tweet,
