@@ -51,14 +51,24 @@ function FilterNewTweets(tweets, processed_tweet_ids) {
 }
 async function GenerateArtPrompt(text) {
   try {
-    const art_prompt_prompt = `Using the following tweet enclosed in single quotation marks '${text}', generate a prompt for ai art generator to pair with the content in the tweet. Do not include anything but the prompt itself in the response. Do not put an quotation marks around the response.`;
+    const art_prompt_prompt = `Visualize the following tweet by elon musk: "${text}" and provide a detailed description of the visualization. It should be description of a scene, written as if you are describing an image. 
+
+Convert abstract ideas into visual elements in the scene.  Also, describe the composition, color, objects in the image in detail. 
+
+You may also choose a random art style, or random artist to describe the style of the scene's visuals.  Only choose at most one art style or artist. It is even better if the artist is popular on ArtStation. 
+
+Genrate response that uses keywords, and clauses, separated by commas. 
+Do not include anything else but the description it self in the response. Do not include the word: "Elon Musk" in the response
+`;
     const { data } = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: art_prompt_prompt,
-      max_tokens: 100,
-      temperature: 0.9,
+      max_tokens: 500,
+      temperature: 1,
     });
-    const prompt = data.choices[0].text.trim(); // Select the first prompt that API returns
+    const prompt = data.choices[0].text
+      .trim()
+      .replace("Elon Musk" | "Elon", "man"); // Select the first prompt that API returns
     return prompt;
   } catch (err) {
     throw err;
