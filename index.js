@@ -55,6 +55,8 @@ Convert abstract ideas into visual elements in the scene.  Also, describe the co
 
 You may also choose a random art style, or random artist to describe the style of the scene's visuals.  Only choose at most one art style or artist. It is even better if the artist is popular on ArtStation. For now, do it in cartoonish style. 
 
+Do not include directions to include phrases or words in the image. Do not include any language or signage in the image. No signs please. 
+
 Genrate response that uses keywords, and clauses, separated by commas. 
 Do not include anything else but the description it self in the response. Do not include the word: "Elon Musk" in the response
 `;

@@ -16,9 +16,9 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-// const tweets = await GetElonTweets();
+const tweets = await GetElonTweets();
 // console.log(tweets);
-// const text = await GenerateTweet(tweets[0]);
-// console.log(text);
-
-Run();
+const prompt = await GenerateArtPrompt(tweets[0].text);
+console.log(prompt);
+const image_url = await GenerateAIImage(prompt);
+console.log(image_url);
