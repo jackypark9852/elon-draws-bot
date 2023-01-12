@@ -25,11 +25,9 @@ const client = new MongoClient(uri, {
 
 async function GetElonTweets() {
   try {
-    const ELONS_LAST_POST_2022 = "1609254628113420290";
     const params = {
       query: "from:elonmusk -is:retweet -is:reply -has:media",
       max_results: 10,
-      since_id: ELONS_LAST_POST_2022,
       expansions: ["edit_history_tweet_ids"],
     };
 
@@ -55,7 +53,7 @@ async function GenerateArtPrompt(text) {
 
 Convert abstract ideas into visual elements in the scene.  Also, describe the composition, color, objects in the image in detail. 
 
-You may also choose a random art style, or random artist to describe the style of the scene's visuals.  Only choose at most one art style or artist. It is even better if the artist is popular on ArtStation. 
+You may also choose a random art style, or random artist to describe the style of the scene's visuals.  Only choose at most one art style or artist. It is even better if the artist is popular on ArtStation. For now, do it in cartoonish style. 
 
 Genrate response that uses keywords, and clauses, separated by commas. 
 Do not include anything else but the description it self in the response. Do not include the word: "Elon Musk" in the response
